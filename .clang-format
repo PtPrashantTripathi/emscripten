@@ -12,5 +12,5 @@ WhitespaceSensitiveMacros: ['EM_ASM', 'EM_JS', 'EM_ASM_INT', 'EM_ASM_DOUBLE', 'E
 ---
 Language: JavaScript
 BasedOnStyle: LLVM
-ColumnLimit: 100
+ColumnLimit: 80
 ---
