@@ -727,7 +727,14 @@ var findStringEnd = (heapOrArray, idx, maxBytesToRead, ignoreNul) => {
 
 var FS_stdin_getChar_buffer = [];
 
+var UTF8Encoder = typeof TextEncoder != "undefined" ? new TextEncoder : undefined;
+
 var lengthBytesUTF8 = str => {
+  // When using conditional TextEncoder, use it for longer strings if available
+  if (UTF8Encoder) {
+    return UTF8Encoder.encode(str).length;
+  }
+  // Fallback: manual calculation
   var len = 0;
   for (var i = 0; i < str.length; ++i) {
     // Gotcha: charCodeAt returns a 16-bit word that is a UTF-16 encoded code
@@ -754,6 +761,17 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   // Parameter maxBytesToWrite is not optional. Negative values, 0, null,
   // undefined and false each don't write out any bytes.
   if (!(maxBytesToWrite > 0)) return 0;
+  // When using conditional TextEncoder, use it for longer strings if available
+  if (str.length > 16 && UTF8Encoder) {
+    var encoded = UTF8Encoder.encode(str);
+    var bytesToWrite = Math.min(encoded.length, maxBytesToWrite - 1);
+    // -1 for null terminator
+    encoded = encoded.subarray(0, bytesToWrite);
+    heap.set(encoded, outIdx);
+    heap[outIdx + bytesToWrite] = 0;
+    return bytesToWrite;
+  }
+  // Fallback: manual UTF-8 encoding
   var startIdx = outIdx;
   var endIdx = outIdx + maxBytesToWrite - 1;
   // -1 for string null terminator.
@@ -792,10 +810,10 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
 /** @type {function(string, boolean=, number=)} */ var intArrayFromString = (stringy, dontAddNull, length) => {
   var len = length > 0 ? length : lengthBytesUTF8(stringy) + 1;
-  var u8array = new Array(len);
+  var u8array = new Uint8Array(len);
   var numBytesWritten = stringToUTF8Array(stringy, u8array, 0, u8array.length);
-  if (dontAddNull) u8array.length = numBytesWritten;
-  return u8array;
+  if (dontAddNull) u8array = u8array.subarray(0, numBytesWritten);
+  return Array.from(u8array);
 };
 
 var FS_stdin_getChar = () => {
