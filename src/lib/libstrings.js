@@ -259,11 +259,9 @@ addToLibrary({
    * @param {string} str - JavaScript string to operator on
    * @return {number} Length, in bytes, of the UTF8 encoded string.
    */
-  $lengthBytesUTF8__deps: [
 #if TEXTENCODER == 2
-    '$UTF8Encoder',
+  $lengthBytesUTF8__deps: ['$UTF8Encoder'],
 #endif
-  ],
   $lengthBytesUTF8: (str) => {
 #if TEXTENCODER == 2
     // Always use TextEncoder when TEXTENCODER == 2
@@ -300,10 +298,11 @@ addToLibrary({
   $intArrayFromString__deps: ['$lengthBytesUTF8', '$stringToUTF8Array'],
   $intArrayFromString: (stringy, dontAddNull, length) => {
     var len = length > 0 ? length : lengthBytesUTF8(stringy)+1;
-    var u8array = new Array(len);
+    var u8array = new Uint8Array(len);
     var numBytesWritten = stringToUTF8Array(stringy, u8array, 0, u8array.length);
-    if (dontAddNull) u8array.length = numBytesWritten;
-    return u8array;
+    if (dontAddNull) 
+      u8array = u8array.subarray(0, numBytesWritten);
+    return Array.from(u8array);
   },
 
   $intArrayToString: (array) => {
