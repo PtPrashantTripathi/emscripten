@@ -259,9 +259,7 @@ addToLibrary({
    * @param {string} str - JavaScript string to operator on
    * @return {number} Length, in bytes, of the UTF8 encoded string.
    */
-#if TEXTENCODER == 2
   $lengthBytesUTF8__deps: ['$UTF8Encoder'],
-#endif
   $lengthBytesUTF8: (str) => {
 #if TEXTENCODER == 2
     // Always use TextEncoder when TEXTENCODER == 2
